@@ -27,17 +27,34 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	// Connect to MongoDB
-	mongoClient, err := infmongo.Connect(cfg.Mongo.URI, cfg.Mongo.Database, cfg.Mongo.Timeout)
+	// Connect to MongoDB with retry
+	mongoClient, err := infmongo.ConnectWithRetry(
+		cfg.Mongo.URI,
+		cfg.Mongo.Database,
+		cfg.Mongo.Timeout,
+		cfg.Mongo.MaxRetries,
+		cfg.Mongo.RetryDelay,
+		zapLogger,
+	)
 	if err != nil {
-		zapLogger.Fatal("Failed to connect to MongoDB", zap.Error(err))
+		zapLogger.Fatal("Failed to connect to MongoDB after retries", zap.Error(err))
 	}
 	defer infmongo.Close(mongoClient)
 
 	mongoDB := mongoClient.Database(cfg.Mongo.Database)
 
-	// Connect to Redis
-	redisClient := infredis.Connect(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.DB)
+	// Connect to Redis with retry
+	redisClient, err := infredis.ConnectWithRetry(
+		cfg.Redis.Addr,
+		cfg.Redis.Password,
+		cfg.Redis.DB,
+		cfg.Redis.MaxRetries,
+		cfg.Redis.RetryDelay,
+		zapLogger,
+	)
+	if err != nil {
+		zapLogger.Fatal("Failed to connect to Redis after retries", zap.Error(err))
+	}
 
 	// Initialize repositories
 	roomRepo := mongo.NewRoomRepository(mongoDB)
