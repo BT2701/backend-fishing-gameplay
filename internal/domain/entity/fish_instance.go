@@ -10,3 +10,22 @@ type (
 		Alive     bool   `json:"alive" bson:"alive"`
 	}
 )
+
+func (f *FishInstance) TakeDamage(damage int) {
+	if !f.Alive {
+		return
+	}
+	f.HP -= damage
+	if f.HP <= 0 {
+		f.Alive = false
+		f.HP = 0
+	}
+}
+
+func (f *FishInstance) IsDead() bool {
+	return !f.Alive || f.HP <= 0
+}
+
+func (f *FishInstance) IsAlive() bool {
+	return f.Alive && f.HP > 0
+}

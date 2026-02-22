@@ -7,19 +7,7 @@ import (
 
 	"github.com/BT2701/backend-fishing-gameplay/internal/domain/entity"
 	"github.com/BT2701/backend-fishing-gameplay/internal/domain/port"
-)
-
-var (
-	ErrRoomAlreadyExists = errors.New("room already exists")
-	ErrRoomNotFound      = errors.New("room not found")
-	ErrRoomFull          = errors.New("room is full")
-	ErrSeatTaken         = errors.New("seat is taken")
-	ErrInvalidBalance    = errors.New("balance must be >= 0")
-	ErrInvalidMaxPlayers = errors.New("max players must be > 0")
-	ErrInvalidSeat       = errors.New("seat id must be >= 0")
-	ErrPlayerInOtherRoom = errors.New("player is in another room")
-	ErrPlayerNotInRoom   = errors.New("player is not in room")
-	ErrPlayerAlreadyIn   = errors.New("player already in room")
+	apperr "github.com/BT2701/backend-fishing-gameplay/pkg/error"
 )
 
 type RoomUsecase struct {
@@ -38,17 +26,17 @@ func NewRoomUsecase(roomRepo port.RoomRepository, playerRepo port.PlayerReposito
 
 func (uc *RoomUsecase) CreateRoom(ctx context.Context, roomID string, maxPlayers int) (*entity.Room, error) {
 	if maxPlayers <= 0 {
-		return nil, ErrInvalidMaxPlayers
+		return nil, apperr.ErrInvalidMaxPlayers
 	}
 	if roomID == "" {
-		return nil, errors.New("room id is required")
+		return nil, apperr.ErrInvalidRoomID
 	}
 
 	existing, err := uc.roomRepo.GetByID(ctx, roomID)
 	if err == nil && existing != nil {
-		return nil, ErrRoomAlreadyExists
+		return nil, apperr.ErrRoomAlreadyExists
 	}
-	if err != nil && !errors.Is(err, port.ErrNotFound) {
+	if err != nil && !errors.Is(err, apperr.ErrNotFound) {
 		return nil, err
 	}
 
@@ -71,16 +59,16 @@ func (uc *RoomUsecase) CreateRoom(ctx context.Context, roomID string, maxPlayers
 
 func (uc *RoomUsecase) JoinRoom(ctx context.Context, roomID, playerID string, seatID int, initialBalance int64) (*entity.Room, *entity.Player, error) {
 	if seatID < 0 {
-		return nil, nil, ErrInvalidSeat
+		return nil, nil, apperr.ErrInvalidSeat
 	}
 	if initialBalance < 0 {
-		return nil, nil, ErrInvalidBalance
+		return nil, nil, apperr.ErrInvalidBalance
 	}
 
 	room, err := uc.roomRepo.GetByID(ctx, roomID)
 	if err != nil {
-		if errors.Is(err, port.ErrNotFound) {
-			return nil, nil, ErrRoomNotFound
+		if errors.Is(err, apperr.ErrNotFound) {
+			return nil, nil, apperr.ErrRoomNotFound
 		}
 		return nil, nil, err
 	}
@@ -90,18 +78,18 @@ func (uc *RoomUsecase) JoinRoom(ctx context.Context, roomID, playerID string, se
 	}
 
 	if room.Config.MaxPlayers > 0 && len(room.Players) >= room.Config.MaxPlayers {
-		return nil, nil, ErrRoomFull
+		return nil, nil, apperr.ErrRoomFull
 	}
 
 	for _, p := range room.Players {
 		if p.SeatID == seatID {
-			return nil, nil, ErrSeatTaken
+			return nil, nil, apperr.ErrSeatTaken
 		}
 	}
 
 	player, err := uc.playerRepo.GetByID(ctx, playerID)
 	if err != nil {
-		if !errors.Is(err, port.ErrNotFound) {
+		if !errors.Is(err, apperr.ErrNotFound) {
 			return nil, nil, err
 		}
 		player = &entity.Player{
@@ -111,14 +99,14 @@ func (uc *RoomUsecase) JoinRoom(ctx context.Context, roomID, playerID string, se
 	}
 
 	if player.RoomID != "" && player.RoomID != roomID {
-		return nil, nil, ErrPlayerInOtherRoom
+		return nil, nil, apperr.ErrPlayerInOtherRoom
 	}
 	if player.Balance < 0 {
-		return nil, nil, ErrInvalidBalance
+		return nil, nil, apperr.ErrInvalidBalance
 	}
 
 	if _, exists := room.Players[playerID]; exists {
-		return nil, nil, ErrPlayerAlreadyIn
+		return nil, nil, apperr.ErrPlayerAlreadyIn
 	}
 
 	player.SeatID = seatID
@@ -141,15 +129,15 @@ func (uc *RoomUsecase) JoinRoom(ctx context.Context, roomID, playerID string, se
 func (uc *RoomUsecase) LeaveRoom(ctx context.Context, roomID, playerID string) (*entity.Room, *entity.Player, error) {
 	room, err := uc.roomRepo.GetByID(ctx, roomID)
 	if err != nil {
-		if errors.Is(err, port.ErrNotFound) {
-			return nil, nil, ErrRoomNotFound
+		if errors.Is(err, apperr.ErrNotFound) {
+			return nil, nil, apperr.ErrRoomNotFound
 		}
 		return nil, nil, err
 	}
 
 	player, ok := room.Players[playerID]
 	if !ok {
-		return nil, nil, ErrPlayerNotInRoom
+		return nil, nil, apperr.ErrPlayerNotInRoom
 	}
 
 	delete(room.Players, playerID)

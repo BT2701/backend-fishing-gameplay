@@ -6,6 +6,6 @@ import (
 	"github.com/BT2701/backend-fishing-gameplay/internal/domain/entity"
 )
 
-type FishRepository interface {
-	GetTypeByID(ctx context.Context, fishID int) (*entity.FishType, error)
+type GunRepository interface {
+	GetByID(ctx context.Context, gunID int) (*entity.Gun, error)
 }
