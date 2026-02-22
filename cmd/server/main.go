@@ -28,7 +28,7 @@ func main() {
 	cfg := config.Load()
 
 	// Connect to MongoDB with retry
-	mongoClient, err := infmongo.ConnectWithRetry(
+	mongoClient, err := infmongo.ConnectWithRetryZap(
 		cfg.Mongo.URI,
 		cfg.Mongo.Database,
 		cfg.Mongo.Timeout,
@@ -44,7 +44,7 @@ func main() {
 	mongoDB := mongoClient.Database(cfg.Mongo.Database)
 
 	// Connect to Redis with retry
-	redisClient, err := infredis.ConnectWithRetry(
+	redisClient, err := infredis.ConnectWithRetryZap(
 		cfg.Redis.Addr,
 		cfg.Redis.Password,
 		cfg.Redis.DB,

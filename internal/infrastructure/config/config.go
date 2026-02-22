@@ -57,6 +57,61 @@ func Load() *Config {
 	}
 }
 
+// Server configuration methods
+func (c *Config) GetServerHost() string {
+	return c.Server.Host
+}
+
+func (c *Config) GetServerPort() int {
+	return c.Server.Port
+}
+
+// MongoDB configuration methods
+func (c *Config) GetMongoURI() string {
+	return c.Mongo.URI
+}
+
+func (c *Config) GetMongoDatabase() string {
+	return c.Mongo.Database
+}
+
+func (c *Config) GetMongoTimeout() int {
+	return c.Mongo.Timeout
+}
+
+func (c *Config) GetMongoMaxRetries() int {
+	return c.Mongo.MaxRetries
+}
+
+func (c *Config) GetMongoRetryDelay() int {
+	return c.Mongo.RetryDelay
+}
+
+// Redis configuration methods
+func (c *Config) GetRedisAddr() string {
+	return c.Redis.Addr
+}
+
+func (c *Config) GetRedisPassword() string {
+	return c.Redis.Password
+}
+
+func (c *Config) GetRedisDB() int {
+	return c.Redis.DB
+}
+
+func (c *Config) GetRedisCacheTTL() int {
+	return c.Redis.CacheTTL
+}
+
+func (c *Config) GetRedisMaxRetries() int {
+	return c.Redis.MaxRetries
+}
+
+func (c *Config) GetRedisRetryDelay() int {
+	return c.Redis.RetryDelay
+}
+
 func getEnv(key string, defaultVal string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value

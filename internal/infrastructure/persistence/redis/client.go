@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func ConnectWithRetry(addr string, password string, db int, maxRetries int, retryDelayMs int, logger *zap.Logger) (*redislib.Client, error) {
+func ConnectWithRetry(addr string, password string, db int, maxRetries int, retryDelayMs int, logger persistence.Logger) (*redislib.Client, error) {
 	var client *redislib.Client
 
 	err := persistence.RetryWithBackoff(maxRetries, retryDelayMs, logger, "connect to Redis", func() error {
@@ -34,6 +34,11 @@ func ConnectWithRetry(addr string, password string, db int, maxRetries int, retr
 	})
 
 	return client, err
+}
+
+// ConnectWithRetryZap is a helper function that wraps zap.Logger for backwards compatibility
+func ConnectWithRetryZap(addr string, password string, db int, maxRetries int, retryDelayMs int, zapLogger *zap.Logger) (*redislib.Client, error) {
+	return ConnectWithRetry(addr, password, db, maxRetries, retryDelayMs, persistence.NewLoggerAdapter(zapLogger))
 }
 
 func Connect(addr string, password string, db int) *redislib.Client {

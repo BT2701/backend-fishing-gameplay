@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func ConnectWithRetry(uri string, database string, timeout int, maxRetries int, retryDelayMs int, logger *zap.Logger) (*mongo.Client, error) {
+func ConnectWithRetry(uri string, database string, timeout int, maxRetries int, retryDelayMs int, logger persistence.Logger) (*mongo.Client, error) {
 	var client *mongo.Client
 
 	err := persistence.RetryWithBackoff(maxRetries, retryDelayMs, logger, "connect to MongoDB", func() error {
@@ -33,6 +33,11 @@ func ConnectWithRetry(uri string, database string, timeout int, maxRetries int, 
 	})
 
 	return client, err
+}
+
+// ConnectWithRetryZap is a helper function that wraps zap.Logger for backwards compatibility
+func ConnectWithRetryZap(uri string, database string, timeout int, maxRetries int, retryDelayMs int, zapLogger *zap.Logger) (*mongo.Client, error) {
+	return ConnectWithRetry(uri, database, timeout, maxRetries, retryDelayMs, persistence.NewLoggerAdapter(zapLogger))
 }
 
 func Connect(uri string, database string, timeout int) (*mongo.Client, error) {
