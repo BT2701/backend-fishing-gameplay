@@ -26,6 +26,7 @@ type RedisConfig struct {
 	Addr     string
 	Password string
 	DB       int
+	CacheTTL int // Cache TTL in seconds
 }
 
 func Load() *Config {
@@ -43,6 +44,7 @@ func Load() *Config {
 			Addr:     getEnv("REDIS_ADDR", "localhost:6379"),
 			Password: getEnv("REDIS_PASSWORD", ""),
 			DB:       getEnvInt("REDIS_DB", 0),
+			CacheTTL: getEnvInt("REDIS_CACHE_TTL", 86400), // 24 hours default
 		},
 	}
 }

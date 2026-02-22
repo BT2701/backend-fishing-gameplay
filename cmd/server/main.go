@@ -48,7 +48,7 @@ func main() {
 	gameConfigMongoRepo := mongo.NewGameConfigRepository(mongoDB)
 
 	// Initialize cache repositories (with fallback to MongoDB)
-	gameConfigRepo := redis.NewGameConfigCacheRepository(redisClient, gameConfigMongoRepo)
+	gameConfigRepo := redis.NewGameConfigCacheRepository(redisClient, gameConfigMongoRepo, cfg.Redis.CacheTTL)
 
 	// Initialize usecases
 	roomUsecase := usecase.NewRoomUsecase(roomRepo, playerRepo)

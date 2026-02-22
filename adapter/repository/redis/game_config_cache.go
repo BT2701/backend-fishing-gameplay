@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/BT2701/backend-fishing-gameplay/internal/domain/games/game_base/models"
 	"github.com/BT2701/backend-fishing-gameplay/internal/domain/port"
@@ -15,12 +16,14 @@ import (
 type GameConfigCacheRepository struct {
 	redisClient *redis.Client
 	mongoRepo   port.GameConfigRepository
+	cacheTTL    int // Cache TTL in seconds
 }
 
-func NewGameConfigCacheRepository(redisClient *redis.Client, mongoRepo port.GameConfigRepository) *GameConfigCacheRepository {
+func NewGameConfigCacheRepository(redisClient *redis.Client, mongoRepo port.GameConfigRepository, cacheTTL int) *GameConfigCacheRepository {
 	return &GameConfigCacheRepository{
 		redisClient: redisClient,
 		mongoRepo:   mongoRepo,
+		cacheTTL:    cacheTTL,
 	}
 }
 
@@ -28,9 +31,6 @@ func NewGameConfigCacheRepository(redisClient *redis.Client, mongoRepo port.Game
 func (r *GameConfigCacheRepository) cacheKey(configType, gameName string) string {
 	return fmt.Sprintf("game_config:%s:%s", configType, gameName)
 }
-
-// cacheTTL returns the cache TTL in seconds (24 hours)
-const cacheTTL = 24 * 60 * 60
 
 func (r *GameConfigCacheRepository) GetBulletConfig(ctx context.Context, gameName string) (*gameBaseModels.BulletConfig, error) {
 	cacheKey := r.cacheKey("bullets", gameName)
@@ -62,7 +62,7 @@ func (r *GameConfigCacheRepository) GetBulletConfig(ctx context.Context, gameNam
 
 	// Cache the data in Redis
 	if data, err := json.Marshal(config); err == nil {
-		_ = r.redisClient.Set(ctx, cacheKey, data, cacheTTL).Err()
+		_ = r.redisClient.Set(ctx, cacheKey, data, time.Duration(r.cacheTTL)*time.Second).Err()
 	}
 
 	return config, nil
@@ -96,7 +96,7 @@ func (r *GameConfigCacheRepository) GetGameConfig(ctx context.Context, gameName 
 
 	// Cache the data in Redis
 	if data, err := json.Marshal(config); err == nil {
-		_ = r.redisClient.Set(ctx, cacheKey, data, cacheTTL).Err()
+		_ = r.redisClient.Set(ctx, cacheKey, data, time.Duration(r.cacheTTL)*time.Second).Err()
 	}
 
 	return config, nil
@@ -130,7 +130,7 @@ func (r *GameConfigCacheRepository) GetGameFeatures(ctx context.Context, gameNam
 
 	// Cache the data in Redis
 	if data, err := json.Marshal(features); err == nil {
-		_ = r.redisClient.Set(ctx, cacheKey, data, cacheTTL).Err()
+		_ = r.redisClient.Set(ctx, cacheKey, data, time.Duration(r.cacheTTL)*time.Second).Err()
 	}
 
 	return features, nil
@@ -164,7 +164,7 @@ func (r *GameConfigCacheRepository) GetGamePaths(ctx context.Context, gameName s
 
 	// Cache the data in Redis
 	if data, err := json.Marshal(paths); err == nil {
-		_ = r.redisClient.Set(ctx, cacheKey, data, cacheTTL).Err()
+		_ = r.redisClient.Set(ctx, cacheKey, data, time.Duration(r.cacheTTL)*time.Second).Err()
 	}
 
 	return paths, nil
@@ -198,7 +198,7 @@ func (r *GameConfigCacheRepository) GetGameRTP(ctx context.Context, gameName str
 
 	// Cache the data in Redis
 	if data, err := json.Marshal(rtp); err == nil {
-		_ = r.redisClient.Set(ctx, cacheKey, data, cacheTTL).Err()
+		_ = r.redisClient.Set(ctx, cacheKey, data, time.Duration(r.cacheTTL)*time.Second).Err()
 	}
 
 	return rtp, nil
@@ -232,7 +232,7 @@ func (r *GameConfigCacheRepository) GetGameFishTypes(ctx context.Context, gameNa
 
 	// Cache the data in Redis
 	if data, err := json.Marshal(fishTypes); err == nil {
-		_ = r.redisClient.Set(ctx, cacheKey, data, cacheTTL).Err()
+		_ = r.redisClient.Set(ctx, cacheKey, data, time.Duration(r.cacheTTL)*time.Second).Err()
 	}
 
 	return fishTypes, nil
